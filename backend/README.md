@@ -36,8 +36,8 @@ cp .env.example .env
 
 Edit `.env`:
 ```env
-RPC_URL=https://sepolia.infura.io/v3/YOUR_INFURA_PROJECT_ID
-CONTRACT_ADDRESS=0x5E95A1e4922Eeccc5B76cdFB0c59aad77fCd1d40
+RPC_URL=
+CONTRACT_ADDRESS=
 PRIVATE_KEY=your_private_key_here
 ```
 

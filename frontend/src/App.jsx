@@ -15,6 +15,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [voting, setVoting] = useState(false);
+  const [closingVoting, setClosingVoting] = useState(false);
   const [error, setError] = useState(null);
   const [toast, setToast] = useState(null);
 
@@ -124,6 +125,40 @@ function App() {
     }
   };
 
+  // Close voting (admin only)
+  const handleCloseVoting = async () => {
+    if (!account) {
+      showToast('Please connect your wallet first', 'error');
+      return;
+    }
+
+    if (account.toLowerCase() !== votingStatus.admin?.toLowerCase()) {
+      showToast('Only admin can close voting', 'error');
+      return;
+    }
+
+    try {
+      setClosingVoting(true);
+      setError(null);
+      
+      // In a real implementation, you would call the backend API
+      // For now, we'll use the web3 service to call the contract directly
+      const txHash = await web3Service.closeVoting();
+      
+      showToast(`Voting closed successfully! Transaction: ${txHash.substring(0, 10)}...`, 'success');
+      
+      // Update UI
+      await loadVotingData();
+      
+    } catch (err) {
+      console.error('Error closing voting:', err);
+      setError(err.message || 'Failed to close voting');
+      showToast(err.message || 'Failed to close voting', 'error');
+    } finally {
+      setClosingVoting(false);
+    }
+  };
+
   // Initialize app
   useEffect(() => {
     loadVotingData();
@@ -199,35 +234,68 @@ function App() {
             Secure, Transparent, and Immutable Blockchain Voting
           </p>
           
-          {/* Manual Refresh Button */}
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => loadVotingData(false)}
-            disabled={refreshing}
-            style={{
-              background: 'rgba(255, 255, 255, 0.2)',
-              backdropFilter: 'blur(10px)',
-              color: 'white',
-              border: '2px solid rgba(255, 255, 255, 0.3)',
-              padding: '0.5rem 1.5rem',
-              borderRadius: '9999px',
-              cursor: refreshing ? 'wait' : 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              fontWeight: '600',
-              marginTop: '0.5rem',
-            }}
-          >
-            <motion.div
-              animate={{ rotate: refreshing ? 360 : 0 }}
-              transition={{ duration: 1, repeat: refreshing ? Infinity : 0, ease: 'linear' }}
+          {/* Action Buttons */}
+          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+            {/* Manual Refresh Button */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => loadVotingData(false)}
+              disabled={refreshing}
+              style={{
+                background: 'rgba(255, 255, 255, 0.2)',
+                backdropFilter: 'blur(10px)',
+                color: 'white',
+                border: '2px solid rgba(255, 255, 255, 0.3)',
+                padding: '0.5rem 1.5rem',
+                borderRadius: '9999px',
+                cursor: refreshing ? 'wait' : 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                fontWeight: '600',
+              }}
             >
-              <FaSyncAlt />
-            </motion.div>
-            {refreshing ? 'Refreshing...' : 'Refresh Data'}
-          </motion.button>
+              <motion.div
+                animate={{ rotate: refreshing ? 360 : 0 }}
+                transition={{ duration: 1, repeat: refreshing ? Infinity : 0, ease: 'linear' }}
+              >
+                <FaSyncAlt />
+              </motion.div>
+              {refreshing ? 'Refreshing...' : 'Refresh Data'}
+            </motion.button>
+            
+            {/* Close Voting Button - Only for Admin */}
+            {account && votingStatus.admin && account.toLowerCase() === votingStatus.admin.toLowerCase() && votingStatus.isActive && (
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleCloseVoting}
+                disabled={closingVoting}
+                style={{
+                  background: 'rgba(239, 68, 68, 0.2)',
+                  backdropFilter: 'blur(10px)',
+                  color: '#ef4444',
+                  border: '2px solid rgba(239, 68, 68, 0.3)',
+                  padding: '0.5rem 1.5rem',
+                  borderRadius: '9999px',
+                  cursor: closingVoting ? 'wait' : 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  fontWeight: '600',
+                }}
+              >
+                <motion.div
+                  animate={{ rotate: closingVoting ? 360 : 0 }}
+                  transition={{ duration: 1, repeat: closingVoting ? Infinity : 0, ease: 'linear' }}
+                >
+                  <FaSpinner />
+                </motion.div>
+                {closingVoting ? 'Closing...' : 'Close Voting'}
+              </motion.button>
+            )}
+          </div>
         </motion.div>
 
         {loading ? (

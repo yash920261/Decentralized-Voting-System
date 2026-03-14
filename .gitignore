@@ -58,6 +58,10 @@ yarn-error.log*
 # Test output
 .nyc_output/
 
+# Python
+__pycache__/
+*.pyc
+
 # Temporary files
 *.tmp
 .cache/

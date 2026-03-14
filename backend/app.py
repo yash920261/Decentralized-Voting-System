@@ -2,8 +2,8 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from web3 import Web3
-from typing import List, Optional
-import json
+from typing import List
+
 import os
 from dotenv import load_dotenv
 

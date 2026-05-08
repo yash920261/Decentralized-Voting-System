@@ -121,14 +121,38 @@ class Web3Service {
 
   // Switch to correct network
   async switchNetwork() {
+    const chainIdHex = `0x${parseInt(CHAIN_ID).toString(16)}`;
     try {
       await window.ethereum.request({
         method: 'wallet_switchEthereumChain',
-        params: [{ chainId: `0x${parseInt(CHAIN_ID).toString(16)}` }],
+        params: [{ chainId: chainIdHex }],
       });
     } catch (error) {
-      console.error('Error switching network:', error);
-      throw error;
+      if (error.code === 4902) {
+        try {
+          await window.ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [
+              {
+                chainId: chainIdHex,
+                chainName: 'Localhost 8545',
+                rpcUrls: ['http://127.0.0.1:8545'],
+                nativeCurrency: {
+                  name: 'ETH',
+                  symbol: 'ETH',
+                  decimals: 18,
+                },
+              },
+            ],
+          });
+        } catch (addError) {
+          console.error('Error adding network:', addError);
+          throw addError;
+        }
+      } else {
+        console.error('Error switching network:', error);
+        throw error;
+      }
     }
   }
 
